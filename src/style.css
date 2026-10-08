@@ -16,6 +16,7 @@
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; font-family: var(--mono); -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none; touch-action: none; }
 #app { position: fixed; inset: 0; }
 #game-root, #game-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#game-canvas { cursor: crosshair; }
 .hidden { display: none !important; }
 kbd { font-family: var(--mono); font-size: 0.72em; padding: 0.1em 0.45em; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: rgba(255,255,255,0.05); color: var(--ink); margin: 0 1px; }
 

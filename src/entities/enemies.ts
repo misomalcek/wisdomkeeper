@@ -437,7 +437,7 @@ function bossStep(e: Enemy, g: Game, dt: number, d: number, toP: number) {
     e.z += Math.cos(a) * sp * dt;
   }
 
-  const shots = [12, 16, 20][e.phase - 1];
+  const shots = [14, 18, 24][e.phase - 1];
   const pos = new THREE.Vector3(e.x, e.y, e.z);
 
   if (e.atk === null) {
@@ -480,7 +480,7 @@ function bossStep(e: Enemy, g: Game, dt: number, d: number, toP: number) {
         g.particles.ring(pos, HOT.clone().multiplyScalar(2.5), 24, 12, 0.6, 0.6);
         e.atk = null;
         e.state = 'chase';
-        e.cd = [2.6, 2.1, 1.7][e.phase - 1];
+        e.cd = [2.4, 1.9, 1.5][e.phase - 1];
       }
       break;
     case 'spiral': {
@@ -489,12 +489,8 @@ function bossStep(e: Enemy, g: Game, dt: number, d: number, toP: number) {
       if (e.atkN <= 0) {
         e.atkN = 0.1 - e.phase * 0.008;
         const a = g.time * 3.2;
-        g.projectiles.fireEnemy(e.x, e.z, a, 11, 9);
-        g.projectiles.fireEnemy(e.x, e.z, a + Math.PI, 11, 9);
-        if (e.phase >= 3) {
-          g.projectiles.fireEnemy(e.x, e.z, a + Math.PI / 2, 11, 9);
-          g.projectiles.fireEnemy(e.x, e.z, a - Math.PI / 2, 11, 9);
-        }
+        const arms = e.phase + 1; // 2, 3, 4 arms
+        for (let i = 0; i < arms; i++) g.projectiles.fireEnemy(e.x, e.z, a + (i / arms) * TAU, 11.5, 9);
       }
       if (e.atkT <= 0) {
         e.atk = null;
@@ -519,7 +515,8 @@ function bossStep(e: Enemy, g: Game, dt: number, d: number, toP: number) {
         const speed = 16 + e.phase * 1.5;
         const lead = Math.min(1.2, d / speed);
         const aimA = Math.atan2(p.x + p.vx * lead - e.x, p.z + p.vz * lead - e.z);
-        for (let i = -1; i <= 1; i++) g.projectiles.fireEnemy(e.x, e.z, aimA + i * 0.2, speed, 12);
+        const half = e.phase >= 2 ? 2 : 1;
+        for (let i = -half; i <= half; i++) g.projectiles.fireEnemy(e.x, e.z, aimA + i * 0.18, speed, 12);
         g.audio.sfx('spit');
       }
       break;
