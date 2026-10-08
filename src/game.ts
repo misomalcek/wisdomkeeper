@@ -97,6 +97,7 @@ export class Game {
   private ambientTimer = 3;
   private pendingNote = '';
   private surgeRing: THREE.Mesh;
+  private compass: THREE.Mesh;
   private surgeT = 99;
   private surgeR = 15;
   private slowMoT = 0;
@@ -131,6 +132,12 @@ export class Game {
       new THREE.MeshBasicMaterial({ color: new THREE.Color(0xb084ff).multiplyScalar(3), transparent: true, opacity: 0, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }),
     );
     scene.add(this.surgeRing);
+    this.compass = new THREE.Mesh(
+      new THREE.ConeGeometry(0.28, 0.9, 3).rotateX(Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffd36b).multiplyScalar(1.6), transparent: true, opacity: 0.8, depthWrite: false }),
+    );
+    this.compass.visible = false;
+    scene.add(this.compass);
 
     this.applySettings();
     this.bindUI();
@@ -260,6 +267,8 @@ export class Game {
   }
 
   private beginNewStory() {
+    const saved = this.loadRun();
+    if (saved && saved.stratumIndex > 0 && !window.confirm('Begin a new story? Your saved progress will be replaced.')) return;
     this.newRun(1);
     store.del(SAVE_KEY);
     this.startPrologue([OPENING_QUOTE, SECOND_QUOTE]);
@@ -314,6 +323,7 @@ export class Game {
       this.world.dispose();
     }
     this.def = def;
+    this.gfx.grace = 3.5;
     this.world = new World(def, this.run);
     this.gfx.scene.add(this.world.group);
     const p = this.world.palette;
@@ -385,7 +395,10 @@ export class Game {
     this.rig.fovTarget = 0;
     this.rig.zoomRate = 1.7;
 
-    if (this.def.boss) this.spawnEnemy('boss', 0, 0, false);
+    if (this.def.boss) {
+      this.spawnEnemy('boss', 0, 0, false);
+      this.boss = this.enemies.find((e) => e.kind === 'boss') ?? null;
+    }
 
     this.mode = 'play';
     this.ui.hideAll();
@@ -506,6 +519,10 @@ export class Game {
   private handleGlobalKeys() {
     const k = this.input;
     if (k.wasPressed('KeyM')) this.ui.setMuteLabel(this.audio.toggleMute());
+    if (k.wasPressed('KeyF')) {
+      if (document.fullscreenElement) void document.exitFullscreen();
+      else void document.documentElement.requestFullscreen?.().catch(() => undefined);
+    }
     if (k.wasPressed('Digit1')) this.ui.choiceKey(0);
     if (k.wasPressed('Digit2')) this.ui.choiceKey(1);
     if (k.wasPressed('Digit3')) this.ui.choiceKey(2);
@@ -653,8 +670,15 @@ export class Game {
     this.updateTurrets(dt);
     this.updateWorldVisuals(dt, false);
 
-    // camera
+    // camera: frame the boss as well as the player once the arena is in play
     this.focus.set(p.x, p.y, p.z);
+    if (this.boss && !this.boss.dead) {
+      const b = this.boss;
+      const d = Math.hypot(b.x - p.x, b.z - p.z);
+      const w = d < 55 ? 0.34 : 0;
+      this.focus.x += (b.x - p.x) * w;
+      this.focus.z += (b.z - p.z) * w;
+    }
     const ldt = this.input.lastDevice === 'mouse' ? 0.22 : 3.5;
     if (this.input.lastDevice === 'mouse' && !dead) {
       this.lead.set((this.aimPoint.x - p.x) * ldt, 0, (this.aimPoint.z - p.z) * ldt);
@@ -665,8 +689,9 @@ export class Game {
 
     // audio intensity
     const alive = this.enemies.length;
-    this.audio.setIntensity(clamp(alive / 14 + (this.encounter ? 0.25 : 0) + (this.boss && !this.bossDown ? 0.4 : 0), 0, 1));
+    this.audio.setIntensity(clamp(alive / 14 + (this.encounter ? 0.25 : 0) + (this.boss?.activated && !this.bossDown ? 0.4 : 0), 0, 1));
 
+    this.updateCompass();
     this.drawHud();
   }
 
@@ -1156,7 +1181,7 @@ export class Game {
       return;
     }
     this.mode = 'choice';
-    this.ui.say(this.def.id === 'seedbed' ? 'Three ways to listen.' : '');
+    if (this.def.id === 'seedbed') this.ui.say('Three ways to listen.');
     this.ui.choice(choice, this.run.tiers, (c) => this.applyChoice(c));
   }
 
@@ -1235,6 +1260,31 @@ export class Game {
   }
 
   // ---------------------------------------------------------------- HUD
+
+  /** A small chevron orbiting the hero that points at the current objective when it's far away. */
+  private updateCompass() {
+    const p = this.player;
+    let target: THREE.Vector3 | null = null;
+    if (this.mode === 'play' && !this.encounter) {
+      const node = this.world.nodes.find((n) => n.state === 'dormant');
+      if (node) target = node.pos;
+      else if (this.gateOpen()) target = this.world.gate!.pos;
+      else if (this.def.boss && this.boss && !this.boss.dead) target = null;
+    }
+    if (!target) {
+      this.compass.visible = false;
+      return;
+    }
+    const dx = target.x - p.x;
+    const dz = target.z - p.z;
+    const d = Math.hypot(dx, dz);
+    this.compass.visible = d > 12 && !p.dead;
+    if (!this.compass.visible) return;
+    const a = Math.atan2(dx, dz);
+    this.compass.position.set(p.x + Math.sin(a) * 3.1, p.y - 0.2 + Math.sin(this.time * 4) * 0.08, p.z + Math.cos(a) * 3.1);
+    this.compass.rotation.y = a;
+    (this.compass.material as THREE.MeshBasicMaterial).opacity = 0.55 + 0.3 * Math.sin(this.time * 5);
+  }
 
   private drawHud() {
     const p = this.player;

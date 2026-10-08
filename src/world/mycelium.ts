@@ -59,9 +59,9 @@ export class Mycelium {
           float age = uTime - vBirth;
           if (age < 0.0) discard;
           float reveal = smoothstep(0.0, 0.35, age);
-          float flash = exp(-age * 1.8) * 1.1;
+          float flash = exp(-age * 2.2) * 0.6;
           float pulse = 0.5 + 0.5 * sin(uTime * 2.4 - (vP.x + vP.z) * 0.35 + vKind * 5.0);
-          vec3 c = mix(uA, uB, vKind) * (0.3 + 0.7 * pulse * pulse + flash);
+          vec3 c = mix(uA, uB, vKind) * (0.26 + 0.6 * pulse * pulse + flash);
           gl_FragColor = vec4(c * reveal, reveal);
         }`,
     });

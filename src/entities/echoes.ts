@@ -103,13 +103,13 @@ export class EchoGrove {
       const sway = Math.sin(this.time * 1.2 + i) * 0.06;
       _o.position.y = e.y + g * e.scale * h * 0.95;
       const k = g * e.scale;
-      if (e.affinity === 'root') _o.scale.set(k * 1.25, k * 0.7, k * 1.25);
-      else if (e.affinity === 'echo') _o.scale.set(k * 0.75, k * 1.35, k * 0.75);
-      else _o.scale.set(k * 1.0, k * 1.0, k * 1.0);
+      if (e.affinity === 'root') _o.scale.set(k * 0.95, k * 0.55, k * 0.95);
+      else if (e.affinity === 'echo') _o.scale.set(k * 0.5, k * 1.05, k * 0.5);
+      else _o.scale.set(k * 0.72, k * 0.72, k * 0.72);
       _o.rotation.set(sway, this.time * 0.4 + i, sway);
       _o.updateMatrix();
       this.crown.setMatrixAt(i, _o.matrix);
-      _c.set(AFFINITY_COLOR[e.affinity]).multiplyScalar(e.sentinel ? 2.6 : 1.7 + 0.4 * Math.sin(this.time * 2 + i));
+      _c.set(AFFINITY_COLOR[e.affinity]).multiplyScalar(e.sentinel ? 1.8 : 1.0 + 0.2 * Math.sin(this.time * 2 + i));
       this.crown.setColorAt(i, _c);
     }
     this.trunk.instanceMatrix.needsUpdate = this.crown.instanceMatrix.needsUpdate = true;

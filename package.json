@@ -9,7 +9,9 @@
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:systems": "npm run build && node scripts/systems-test.mjs",
+    "sim": "npm run build && node scripts/sim2.mjs 0,1,2 0.4"
   },
   "dependencies": {
     "three": "^0.186.1"

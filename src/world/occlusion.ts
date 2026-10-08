@@ -16,7 +16,7 @@ export function updateOcclusion(renderer: THREE.WebGLRenderer, camera: THREE.Per
   const depth = -_v.z;
   _v.copy(p).project(camera);
   occ.player.value.set((_v.x * 0.5 + 0.5) * _size.x, (_v.y * 0.5 + 0.5) * _size.y, depth);
-  occ.radius.value = _size.y * 0.17;
+  occ.radius.value = _size.y * 0.14;
 }
 
 /**

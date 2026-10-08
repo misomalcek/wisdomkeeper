@@ -345,7 +345,7 @@ export class UI {
     body.innerHTML = `<div class="tl">${left}</div>
       <div class="side"><h3>Affinities</h3>${rows}
       <h3>The world so far</h3>
-      <div class="echoes-line">${run.echoes.length} echo-trees remember you. ${run.kills} fragments of Static have been purified. ${run.cycle > 1 ? `Cycle ${run.cycle}.` : ''}</div></div>`;
+      <div class="echoes-line">${run.echoes.length} echo-tree${run.echoes.length === 1 ? '' : 's'} remember${run.echoes.length === 1 ? 's' : ''} you. ${run.kills} fragment${run.kills === 1 ? '' : 's'} of Static purified. ${run.cycle > 1 ? `Cycle ${run.cycle}.` : ''}</div></div>`;
     this.show('timeline');
   }
 
@@ -369,10 +369,10 @@ export class UI {
   ending(story: ComposedStory) {
     $('ending-title').textContent = story.title;
     const body = $('ending-body');
-    body.innerHTML = story.paragraphs.map((p, i) => `<p style="animation-delay:${0.6 + i * 1.7}s">${p.replace(/</g, '&lt;')}</p>`).join('');
+    body.innerHTML = story.paragraphs.map((p, i) => `<p style="animation-delay:${0.6 + i * 1.4}s">${p.replace(/</g, '&lt;')}</p>`).join('');
     $('ending-stats').textContent = story.stats;
     const menu = document.querySelector('#ending .menu') as HTMLElement;
-    menu.style.animationDelay = `${0.6 + story.paragraphs.length * 1.7}s`;
+    menu.style.animationDelay = `${0.6 + story.paragraphs.length * 1.4}s`;
     this.show('ending');
   }
 
