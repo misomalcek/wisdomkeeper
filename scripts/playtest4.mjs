@@ -1,0 +1,21 @@
+// Visual pass: canopy encounter at full quality
+import { serve, launch } from './harness.mjs';
+import path from 'node:path';
+const server = await serve(path.resolve('dist'));
+const { browser, page, logs } = await launch({ width: 1280, height: 720 });
+const shot = (n) => page.screenshot({ path: `shots/${n}.png` });
+const wait = (ms) => page.waitForTimeout(ms);
+const idx = Number(process.argv[2] ?? 2);
+await page.goto('http://127.0.0.1:4173/?debug&scale=1&noadapt');
+await wait(800);
+await page.evaluate((i) => { const g = window.__wk; g.debugGoto(i); g.god = true; }, idx);
+await wait(5500);
+await shot(`vis-s${idx}-a`);
+await page.evaluate(() => { const g = window.__wk; const n = g.world.nodes[0]; if (n) g.debugAt(n.pos.x + 2, n.pos.z + 2); });
+await wait(600);
+await page.keyboard.press('KeyE');
+await wait(14000);
+await shot(`vis-s${idx}-b`);
+console.log(JSON.stringify(await page.evaluate(() => window.__wk.debugState())));
+console.log(logs.join('\n') || 'no console errors');
+await browser.close(); server.close();

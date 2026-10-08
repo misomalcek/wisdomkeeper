@@ -1,0 +1,55 @@
+// Progression smoke test using debug skips: nodes -> gate -> choice -> transitions through all strata -> ending
+import { serve, launch } from './harness.mjs';
+import path from 'node:path';
+const server = await serve(path.resolve('dist'));
+const { browser, page, logs } = await launch({ width: 960, height: 540 });
+const st = async () => JSON.stringify(await page.evaluate(() => window.__wk.debugState()));
+const shot = (n) => page.screenshot({ path: `shots/${n}.png` });
+const wait = (ms) => page.waitForTimeout(ms);
+await page.goto('http://127.0.0.1:4173/?debug&scale=0.6&nobloom');
+await wait(800);
+await page.evaluate(() => { window.__wk.debugGoto(0); window.__wk.god = true; });
+await wait(2000);
+async function clearStratum(i, pickKey) {
+  await page.evaluate(() => window.__wk.debugCompleteNodes());
+  await wait(1500);
+  console.log(`S${i} nodes done`, await st());
+  await shot(`flow-s${i}-gate`);
+  await page.evaluate(() => { const g = window.__wk; g.debugAt(g.world.gate.pos.x - 2, g.world.gate.pos.z); });
+  await wait(1200);
+  await page.keyboard.press('KeyE');
+  await wait(1200);
+  await shot(`flow-s${i}-choice`);
+  await page.keyboard.press(pickKey);
+  await wait(7000);
+  console.log(`-> after S${i}`, await st());
+}
+await clearStratum(0, 'Digit1');
+await shot('flow-s1-arrive');
+await clearStratum(1, 'Digit2');
+await shot('flow-s2-arrive');
+await clearStratum(2, 'Digit3');
+await wait(2000);
+await shot('flow-s3-arrive');
+// boss: kill it via debug
+await page.evaluate(() => { const g = window.__wk; g.debugAt(0, 12); });
+await wait(4000);
+await shot('flow-s3-boss');
+await page.evaluate(() => window.__wk.debugKillBoss());
+await wait(3500);
+await shot('flow-s3-dead');
+console.log('boss dead', await st());
+await page.evaluate(() => { const g = window.__wk; g.debugAt(g.world.gate.pos.x + 2, g.world.gate.pos.z); });
+await wait(1000);
+await page.keyboard.press('KeyE');
+await wait(8000);
+console.log('return', await st());
+await shot('flow-s4-arrive');
+await page.evaluate(() => { const g = window.__wk; g.debugAt(g.world.nodes[0].pos.x + 2, g.world.nodes[0].pos.z); });
+await wait(1000);
+await page.keyboard.press('KeyE');
+await wait(9000);
+await shot('flow-ending');
+console.log('ending', await st());
+console.log(logs.join('\n') || 'no console errors');
+await browser.close(); server.close();

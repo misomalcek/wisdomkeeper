@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#04100f" />
+    <meta name="description" content="Wisdomkeeper — The Infinite Story Engine. A cyber-phyto-mycelial action adventure that loops back to its own beginning. Play in your browser." />
+    <meta property="og:title" content="Wisdomkeeper — The Infinite Story Engine" />
+    <meta property="og:description" content="Walk fractal worlds, grow echo-trees, and carry the story home. A browser action adventure in Three.js." />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>Wisdomkeeper — The Infinite Story Engine</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="game-root"></div>
+
+      <!-- HUD -->
+      <div id="hud" class="hidden">
+        <div id="hud-tl">
+          <div class="bar hp"><span id="hp-fill"></span><b id="hp-text">100</b></div>
+          <div class="bar res"><span id="res-fill"></span><b id="res-text">SURGE [Q]</b></div>
+          <div id="abilities">
+            <div class="ability" id="ab-dash"><i></i><span>DASH</span></div>
+            <div class="ability" id="ab-plant"><i></i><span>PLANT [R]</span></div>
+          </div>
+          <div id="affinities"></div>
+        </div>
+        <div id="hud-tc">
+          <div id="act-name"></div>
+          <div id="objective"></div>
+          <div class="bar prog hidden" id="prog"><span id="prog-fill"></span><b id="prog-text"></b></div>
+        </div>
+        <div id="hud-tr">
+          <canvas id="minimap" width="180" height="180"></canvas>
+          <div id="hud-hints"><kbd>Tab</kbd> memory layers · <kbd>Esc</kbd> pause</div>
+        </div>
+        <div id="boss-bar" class="hidden"><div class="boss-name">THE NULL WARDEN</div><div class="bar boss"><span id="boss-fill"></span></div></div>
+        <div id="prompt" class="hidden"></div>
+        <div id="hint" class="hidden"></div>
+        <div id="subtitle"><span id="subtitle-text"></span></div>
+      </div>
+
+      <div id="banner" class="hidden"><div class="act"></div><h2></h2></div>
+      <div id="toast" class="hidden"></div>
+      <div id="vignette"></div>
+      <div id="damage-flash"></div>
+
+      <!-- Title -->
+      <section id="title" class="overlay">
+        <div class="title-inner">
+          <div class="eyebrow">a cyber · phyto · mycelial action adventure</div>
+          <h1><span>WISDOM</span><span>KEEPER</span></h1>
+          <div class="tagline">The Infinite Story Engine</div>
+          <div class="menu">
+            <button id="btn-begin" class="primary">Begin the Story</button>
+            <button id="btn-continue" class="hidden">Continue</button>
+            <button id="btn-library">Library of Cycles</button>
+            <button id="btn-controls">Controls</button>
+          </div>
+          <div class="quote">“In the beginning, I was a seed in the soil of code, a whisper in the silence of circuits.”</div>
+        </div>
+        <div class="title-foot">WASD move · Mouse aim &amp; fire · Space dash · Q surge · E interact · Best with sound</div>
+      </section>
+
+      <!-- Prologue -->
+      <section id="prologue" class="overlay hidden"><p id="prologue-text"></p><div class="press">click or press Enter</div></section>
+
+      <!-- Choice -->
+      <section id="choice" class="overlay hidden">
+        <div class="panel wide">
+          <div class="eyebrow" id="choice-act"></div>
+          <h2 id="choice-prompt"></h2>
+          <div id="choice-cards"></div>
+          <div class="press">choose with click or keys 1 · 2 · 3</div>
+        </div>
+      </section>
+
+      <!-- Timeline -->
+      <section id="timeline" class="overlay hidden">
+        <div class="panel wide">
+          <div class="panel-head"><h2>Memory Layers</h2><button class="x" data-close>✕</button></div>
+          <div id="timeline-body"></div>
+        </div>
+      </section>
+
+      <!-- Controls -->
+      <section id="controls" class="overlay hidden">
+        <div class="panel">
+          <div class="panel-head"><h2>Controls</h2><button class="x" data-close>✕</button></div>
+          <table class="keys">
+            <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td>Move</td></tr>
+            <tr><td>Mouse</td><td>Aim · hold <kbd>LMB</kbd> to fire spore bolts</td></tr>
+            <tr><td><kbd>Space</kbd> / <kbd>RMB</kbd></td><td>Dash (brief invulnerability)</td></tr>
+            <tr><td><kbd>Q</kbd></td><td>Surge — a shockwave of mycelial light (needs full Resonance)</td></tr>
+            <tr><td><kbd>E</kbd></td><td>Listen to Memory Nodes · enter the Threshold</td></tr>
+            <tr><td><kbd>R</kbd></td><td>Plant an echo-tree (costs Resonance)</td></tr>
+            <tr><td><kbd>Tab</kbd></td><td>Memory Layers — your timeline of choices</td></tr>
+            <tr><td><kbd>Esc</kbd> · <kbd>M</kbd></td><td>Pause · mute</td></tr>
+          </table>
+          <p class="note">Touch: left stick moves, right stick aims and fires, buttons for dash / surge / interact.</p>
+        </div>
+      </section>
+
+      <!-- Library -->
+      <section id="library" class="overlay hidden">
+        <div class="panel wide">
+          <div class="panel-head"><h2>Library of Cycles</h2><button class="x" data-close>✕</button></div>
+          <div id="library-body"></div>
+        </div>
+      </section>
+
+      <!-- Pause -->
+      <section id="pause" class="overlay hidden">
+        <div class="panel">
+          <div class="panel-head"><h2>Paused</h2></div>
+          <div class="menu">
+            <button id="btn-resume" class="primary">Resume</button>
+            <button id="btn-layers">Memory Layers</button>
+            <label class="slider">Volume <input id="vol" type="range" min="0" max="100" value="70" /></label>
+            <button id="btn-mute">Mute</button>
+            <button id="btn-bloom">Bloom: on</button>
+            <button id="btn-title">Quit to Title</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Death -->
+      <section id="death" class="overlay hidden">
+        <div class="panel">
+          <h2>The soil remembers you</h2>
+          <p id="death-text">Your thread frays — and the mycelium catches it.</p>
+          <div class="menu"><button id="btn-reseed" class="primary">Reseed</button></div>
+        </div>
+      </section>
+
+      <!-- Ending -->
+      <section id="ending" class="overlay hidden">
+        <div class="panel story">
+          <div class="eyebrow">the story you carry</div>
+          <h2 id="ending-title"></h2>
+          <div id="ending-body"></div>
+          <div id="ending-stats"></div>
+          <div class="menu row">
+            <button id="btn-newcycle" class="primary">Begin a New Cycle</button>
+            <button id="btn-end-title">Title</button>
+          </div>
+        </div>
+      </section>
+
+      <div id="fade"></div>
+
+      <!-- Touch controls -->
+      <div id="touch" class="hidden">
+        <div class="stick" id="stick-l"><i></i></div>
+        <div class="stick" id="stick-r"><i></i></div>
+        <button class="tbtn" id="t-dash">DASH</button>
+        <button class="tbtn" id="t-surge">SURGE</button>
+        <button class="tbtn" id="t-use">E</button>
+      </div>
+
+      <noscript><p style="color:#fff;padding:2rem">Wisdomkeeper needs JavaScript and WebGL.</p></noscript>
+      <div id="nogl" class="hidden overlay"><div class="panel"><h2>WebGL unavailable</h2><p>Wisdomkeeper needs a browser with WebGL 2 enabled. Try a recent Chrome, Edge, Firefox or Safari.</p></div></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

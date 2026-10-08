@@ -1,0 +1,27 @@
+import { serve, launch } from './harness.mjs';
+import path from 'node:path';
+const server = await serve(path.resolve('dist'));
+const { browser, page, logs } = await launch();
+await page.goto('http://127.0.0.1:4173/?debug');
+await page.waitForTimeout(1500);
+await page.click('#btn-begin');
+await page.waitForTimeout(1200);
+await page.keyboard.press('Enter');
+await page.waitForTimeout(2500);
+await page.keyboard.press('Enter');
+await page.waitForTimeout(2500);
+await page.keyboard.press('Enter');
+await page.waitForTimeout(3500);
+console.log('state', JSON.stringify(await page.evaluate(() => window.__wk.debugState())));
+await page.screenshot({ path: 'shots/s0-start.png' });
+// move and shoot
+await page.mouse.move(900, 300);
+await page.keyboard.down('KeyD');
+await page.mouse.down();
+await page.waitForTimeout(3000);
+await page.keyboard.up('KeyD');
+await page.mouse.up();
+await page.screenshot({ path: 's0-move.png'.replace('s0','shots/s0') });
+console.log('state', JSON.stringify(await page.evaluate(() => window.__wk.debugState())));
+console.log(logs.join('\n') || 'no console errors');
+await browser.close(); server.close();
