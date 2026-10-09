@@ -135,6 +135,7 @@ export class Combat {
       hits++;
     }
     if (hits && !echo) {
+      if (slam) g.enemyTimeScale = Math.min(g.enemyTimeScale, 0.3); // brief hit-stop on the slam
       this.gainRes(2.5 + hits * 0.8);
       g.audio.sfx('hit', slam ? 0.6 : 1);
     }
