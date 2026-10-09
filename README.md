@@ -6,7 +6,7 @@ You are the **Wisdomkeeper**, a seed‑spirit rooted in the soil of code. Walk f
 
 > *“In the beginning, I was a seed in the soil of code, a whisper in the silence of circuits.”*
 
-**Play:** once deployed, the game lives at `https://<your-user>.github.io/wisdomkeeper/` (see [Deploy](#deploy-to-github-pages)).
+**Play:** <https://misomalcek.github.io/wisdomkeeper/> (this is the original **top-down** version, deployed from `main`). The newer third-person open-world rebuild lives in [misomalcek/the-wisdomkeeper](https://github.com/misomalcek/the-wisdomkeeper) (<https://misomalcek.github.io/the-wisdomkeeper/>). See [Deploy](#deploy-to-github-pages).
 
 ## The loop
 
