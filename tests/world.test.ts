@@ -6,8 +6,9 @@ import type { RunState } from '../src/types';
 import { Rng } from '../src/util/rng';
 
 const mkRun = (seed: number, latent: number[]): RunState => ({
-  version: 1, cycle: 1, seed, stratumIndex: 0, tiers: emptyTiers(), history: [], echoes: [],
+  version: 2, cycle: 1, seed, stratumIndex: 0, tiers: emptyTiers(), history: [], echoes: [],
   maxHp: 100, deaths: 0, kills: 0, elapsed: 0, difficulty: 1, latent,
+  level: 1, xp: 0, skillPoints: 0, skills: {}, inventory: [], equipped: {}, skin: 'resonant', nullPoints: 0, purityPoints: 0, remembrances: [],
 });
 
 describe('world generation invariants', () => {

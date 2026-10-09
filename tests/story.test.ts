@@ -4,8 +4,8 @@ import { PERKS, composeStory, dominantEnding, emptyTiers } from '../src/story/st
 import type { RunState } from '../src/types';
 
 const baseRun = (over: Partial<RunState> = {}): RunState => ({
-  version: 1, cycle: 1, seed: 1, stratumIndex: 4, tiers: emptyTiers(), history: [], echoes: [],
-  maxHp: 100, deaths: 0, kills: 12, elapsed: 600, difficulty: 1, latent: [0, 0, 0, 0], ...over,
+  version: 2, cycle: 1, seed: 1, stratumIndex: 4, tiers: emptyTiers(), history: [], echoes: [],
+  maxHp: 100, deaths: 0, kills: 12, elapsed: 600, difficulty: 1, latent: [0, 0, 0, 0], level: 1, xp: 0, skillPoints: 0, skills: {}, inventory: [], equipped: {}, skin: 'resonant', nullPoints: 0, purityPoints: 0, remembrances: [], ...over,
 });
 
 describe('story data', () => {

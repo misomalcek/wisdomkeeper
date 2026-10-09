@@ -4,6 +4,7 @@ import type { StratumDef } from '../story/strata';
 import type { Terrain } from './terrain';
 import { TAU } from '../util/math';
 import { occlusionFade } from './occlusion';
+import type { Colliders } from './colliders';
 
 export interface Avoid {
   x: number;
@@ -60,7 +61,7 @@ class Batch {
   }
 }
 
-export function buildFlora(def: StratumDef, terrain: Terrain, rng: Rng, density: number, avoid: Avoid[]): Flora {
+export function buildFlora(def: StratumDef, terrain: Terrain, rng: Rng, density: number, avoid: Avoid[], colliders: Colliders, groves: Avoid[] = []): Flora {
   const group = new THREE.Group();
   const R = terrain.radius;
   const pal = def.palette;
@@ -89,7 +90,7 @@ export function buildFlora(def: StratumDef, terrain: Terrain, rng: Rng, density:
     return null;
   };
 
-  const n = (base: number) => Math.round(base * density * (R / 50));
+  const n = (base: number) => Math.round(base * density * (R / 50) * (R / 50) * 0.6);
   const accentA = pal.accent;
   const accentB = pal.accent2;
   const tmp = new THREE.Color();
@@ -155,6 +156,7 @@ export function buildFlora(def: StratumDef, terrain: Terrain, rng: Rng, density:
       const ry = rng.range(0, TAU);
       const s = new THREE.Vector3(rng.range(0.8, 1.4), h, 1);
       body.add(p, ry, s, tmp.setHex(0x5b7f8c));
+      colliders.add(p.x, p.z, 0.95);
       const sp = p.clone();
       sp.y += 0.1;
       tmp.copy(new THREE.Color(accentA)).multiplyScalar(1.5);
@@ -204,48 +206,85 @@ export function buildFlora(def: StratumDef, terrain: Terrain, rng: Rng, density:
     }
   }
 
-  // ---- fractal trees (canopy) ------------------------------------------------------------
-  let shardMesh: THREE.InstancedMesh | undefined;
-  const shardData: { base: THREE.Vector3; spin: number; phase: number; scale: number }[] = [];
-  if (def.flora === 'canopy') {
-    const treeCount = Math.round(16 * density * (R / 62));
-    const branchMax = treeCount * 160;
-    const branches = mk(
-      new THREE.CylinderGeometry(0.62, 1, 1, 5).translate(0, 0.5, 0),
-      new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.05 }),
-      branchMax,
-    );
-    const tips = mk(new THREE.IcosahedronGeometry(0.3, 0), new THREE.MeshBasicMaterial(), treeCount * 90);
+  // ---- ground tufts: eye-level detail everywhere --------------------------------------------
+  const tuftCount = def.flora === 'mirror' ? 0 : n(def.flora === 'return' ? 900 : 650);
+  if (tuftCount) {
+    const tuft = mk(new THREE.ConeGeometry(0.1, 0.75, 4).translate(0, 0.37, 0), selfLit(0.45), tuftCount);
+    for (let i = 0; i < tuftCount; i++) {
+      const p = spot(2, R * 1.02, 0.2, 4);
+      if (!p) continue;
+      const base = new THREE.Color(rng.chance(0.65) ? accentA : accentB).multiplyScalar(rng.range(0.25, 0.55));
+      tuft.add(p, rng.range(0, TAU), new THREE.Vector3(rng.range(0.7, 1.5), rng.range(0.6, 1.8), rng.range(0.7, 1.5)), base);
+    }
+  }
+
+  // ---- fractal trees (canopy) + blackened Null-grove trees around enemy camps --------------------
+  const UPv = UP;
+  const branchesLive = def.flora === 'canopy' ? mk(new THREE.CylinderGeometry(0.62, 1, 1, 5).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ roughness: 0.6, metalness: 0.05 }), Math.round(16 * density * (R / 62) * (R / 62) * 0.7) * 170 + 400) : null;
+  const tipsLive = def.flora === 'canopy' ? mk(new THREE.IcosahedronGeometry(0.3, 0), new THREE.MeshBasicMaterial(), Math.round(16 * density * (R / 62) * (R / 62) * 0.7) * 90 + 200) : null;
+  const deadN = groves.length * 8;
+  const branchesDead = deadN ? mk(new THREE.CylinderGeometry(0.55, 1, 1, 5).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ roughness: 0.8, metalness: 0.05 }), deadN * 90) : null;
+  const tipsDead = deadN ? mk(new THREE.OctahedronGeometry(0.22, 0), new THREE.MeshBasicMaterial(), deadN * 50) : null;
+
+  const growTree = (
+    base: THREE.Vector3, dir: THREE.Vector3, len: number, rad: number, depth: number, maxDepth: number,
+    br: Batch, tp: Batch, trunk: THREE.Color, bud: THREE.Color, tipCols: number[], tipK: [number, number], spread: number,
+  ) => {
+    const end = base.clone().addScaledVector(dir, len);
+    _q.setFromUnitVectors(UPv, dir);
+    const k = 1 - depth / maxDepth;
+    tmp.copy(trunk).lerp(bud, k * k * 0.55);
+    br.add(base, 0, new THREE.Vector3(rad, len, rad), tmp, _q.clone());
+    if (depth === 0) {
+      const c = new THREE.Color(rng.pick(tipCols)).multiplyScalar(rng.range(tipK[0], tipK[1]));
+      tp.add(end, 0, rng.range(0.7, 1.25), c);
+      return;
+    }
+    const kids = depth >= maxDepth - 1 ? 3 : 2;
+    for (let i = 0; i < kids; i++) {
+      const axis = new THREE.Vector3(rng.gauss(), rng.gauss(), rng.gauss()).cross(dir).normalize();
+      const nd = dir.clone().applyAxisAngle(axis, rng.range(0.45, 0.85) * spread);
+      nd.y += 0.18;
+      nd.normalize();
+      growTree(end, nd, len * rng.range(0.66, 0.8), rad * 0.62, depth - 1, maxDepth, br, tp, trunk, bud, tipCols, tipK, spread);
+    }
+  };
+
+  if (branchesLive && tipsLive) {
+    const treeCount = Math.round(16 * density * (R / 62) * (R / 62) * 0.7);
     const trunkCol = new THREE.Color(0x4a2f7a);
     const budCol = new THREE.Color(accentA);
     for (let t = 0; t < treeCount; t++) {
       const p = spot(9, R * 0.96, 0.1);
       if (!p) continue;
       const trunkLen = rng.range(5, 8.5);
-      const grow = (base: THREE.Vector3, dir: THREE.Vector3, len: number, rad: number, depth: number) => {
-        const end = base.clone().addScaledVector(dir, len);
-        _q.setFromUnitVectors(UP, dir);
-        const k = 1 - depth / 5;
-        tmp.copy(trunkCol).lerp(budCol, k * k * 0.55);
-        branches.add(base, 0, new THREE.Vector3(rad, len, rad), tmp, _q.clone());
-        if (depth === 0) {
-          const c = new THREE.Color(rng.chance(0.65) ? accentA : accentB).multiplyScalar(rng.range(1.1, 1.8));
-          tips.add(end, 0, rng.range(0.7, 1.25), c);
-          return;
-        }
-        const kids = depth >= 4 ? 3 : 2;
-        for (let i = 0; i < kids; i++) {
-          const axis = new THREE.Vector3(rng.gauss(), rng.gauss(), rng.gauss()).cross(dir).normalize();
-          const nd = dir.clone().applyAxisAngle(axis, rng.range(0.45, 0.85));
-          nd.y += 0.18;
-          nd.normalize();
-          grow(end, nd, len * rng.range(0.66, 0.8), rad * 0.62, depth - 1);
-        }
-      };
       const lean = new THREE.Vector3(rng.range(-0.12, 0.12), 1, rng.range(-0.12, 0.12)).normalize();
-      grow(p, lean, trunkLen, 0.55 + trunkLen * 0.05, 5);
+      const rad = 0.55 + trunkLen * 0.05;
+      growTree(p, lean, trunkLen, rad, 5, 5, branchesLive, tipsLive, trunkCol, budCol, [accentA, accentA, accentB], [1.1, 1.8], 1);
+      colliders.add(p.x, p.z, rad * 0.95 + 0.25);
     }
   }
+  if (branchesDead && tipsDead) {
+    const trunkCol = new THREE.Color(0x1c1018);
+    const budCol = new THREE.Color(0x4a1a2c);
+    for (const gv of groves) {
+      for (let t = 0; t < 8; t++) {
+        const a = rng.range(0, TAU);
+        const r = gv.r * rng.range(0.35, 0.95);
+        const x = gv.x + Math.cos(a) * r;
+        const z = gv.z + Math.sin(a) * r;
+        if (terrain.riverAt(x, z) > 0.2 || Math.hypot(x, z) > R * 0.97) continue;
+        const p = new THREE.Vector3(x, terrain.heightAt(x, z), z);
+        const len = rng.range(3.5, 6.5);
+        const lean = new THREE.Vector3(rng.range(-0.25, 0.25), 1, rng.range(-0.25, 0.25)).normalize();
+        growTree(p, lean, len, 0.4 + len * 0.04, 4, 4, branchesDead, tipsDead, trunkCol, budCol, [0xff3b7a, 0xff7a3b], [1.1, 1.8], 1.25);
+        colliders.add(x, z, 0.65);
+      }
+    }
+  }
+
+  let shardMesh: THREE.InstancedMesh | undefined;
+  const shardData: { base: THREE.Vector3; spin: number; phase: number; scale: number }[] = [];
 
   // ---- mirror shards (boss arena) ---------------------------------------------------------------
   if (def.flora === 'mirror') {

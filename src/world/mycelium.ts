@@ -3,8 +3,8 @@ import type { Rng } from '../util/rng';
 import type { Palette } from '../story/strata';
 import type { Terrain } from './terrain';
 
-const MAX_SEG = 16000;
-const MAX_TIPS = 90;
+const MAX_SEG = 34000;
+const MAX_TIPS = 150;
 
 interface Tip {
   x: number;

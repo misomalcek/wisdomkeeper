@@ -11,6 +11,7 @@ export class Sky {
       uAccent: { value: new THREE.Color(p.accent) },
       uAccent2: { value: new THREE.Color(p.accent2) },
       uTime: { value: 0 },
+      uSun: { value: new THREE.Color(p.sun) },
     };
     const mat = new THREE.ShaderMaterial({
       uniforms: this.u,
@@ -19,7 +20,7 @@ export class Sky {
       fog: false,
       vertexShader: /* glsl */ `varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
       fragmentShader: /* glsl */ `
-        uniform vec3 uTop, uHorizon, uAccent, uAccent2; uniform float uTime; varying vec3 vDir;
+        uniform vec3 uTop, uHorizon, uAccent, uAccent2, uSun; uniform float uTime; varying vec3 vDir;
         float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         void main(){
           vec3 d = normalize(vDir);
@@ -34,6 +35,16 @@ export class Sky {
           float band = sin(uv.x * 3.0 + sin(uv.y * 5.0 + uTime * 0.12) * 2.0 + uTime * 0.05);
           float a = smoothstep(0.35, 1.0, band) * smoothstep(0.08, 0.35, y) * (1.0 - smoothstep(0.5, 0.95, y));
           col += mix(uAccent, uAccent2, 0.5 + 0.5 * sin(uv.x * 2.0)) * a * 0.22;
+          // twin moons with halos
+          vec3 m1 = normalize(vec3(0.55, 0.30, -0.78));
+          vec3 m2 = normalize(vec3(-0.72, 0.42, -0.55));
+          float d1 = dot(d, m1);
+          float d2 = dot(d, m2);
+          float disc1 = smoothstep(0.9935, 0.9945, d1);
+          float disc2 = smoothstep(0.9975, 0.9981, d2);
+          float crater = 0.82 + 0.18 * sin(d.x * 90.0) * sin(d.y * 80.0 + d.z * 60.0);
+          col += uSun * (disc1 * crater * 1.15 + pow(max(d1, 0.0), 60.0) * 0.28);
+          col += mix(uSun, uAccent2, 0.4) * (disc2 * 0.95 + pow(max(d2, 0.0), 80.0) * 0.22);
           gl_FragColor = vec4(col, 1.0);
         }`,
     });
@@ -112,5 +123,53 @@ export class Motes {
   dispose() {
     this.points.geometry.dispose();
     (this.points.material as THREE.Material).dispose();
+  }
+}
+
+
+/** A skyline of glowing crystal spires beyond the rim of the world. */
+export class Spires {
+  readonly mesh: THREE.InstancedMesh;
+  constructor(radius: number, p: Palette, count = 54) {
+    const geo = new THREE.CylinderGeometry(0.5, 1, 1, 6).translate(0, 0.5, 0);
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { uTop: { value: new THREE.Color(p.accent) }, uBase: { value: new THREE.Color(p.skyHorizon).multiplyScalar(0.5) }, uFog: { value: new THREE.Color(p.fog) }, uDensity: { value: p.fogDensity } },
+      vertexShader: /* glsl */ `
+        varying float vH; varying float vW; varying float vD;
+        void main(){
+          vH = position.y;
+          vec4 wp = modelMatrix * instanceMatrix * vec4(position, 1.0);
+          vW = wp.y;
+          vec4 mv = viewMatrix * wp; vD = length(mv.xyz);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: /* glsl */ `
+        uniform vec3 uTop, uBase, uFog; uniform float uDensity; varying float vH; varying float vW; varying float vD;
+        void main(){
+          float band = smoothstep(0.88, 0.99, sin(vW * 0.35));
+          vec3 c = mix(uBase, uTop * 0.9, pow(vH, 1.5)) + uTop * band * 0.5 * vH;
+          float f = 1.0 - exp(-uDensity * uDensity * vD * vD * 0.12);
+          gl_FragColor = vec4(mix(c, uFog, clamp(f, 0.0, 0.88)), 1.0);
+        }`,
+    });
+    this.mesh = new THREE.InstancedMesh(geo, mat, count);
+    this.mesh.frustumCulled = false;
+    const o = new THREE.Object3D();
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * Math.PI * 2 + Math.random() * 0.12;
+      const r = radius * (1.95 + Math.random() * 1.1);
+      const h = 70 + Math.random() * 150;
+      const w = 8 + Math.random() * 16;
+      o.position.set(Math.cos(a) * r, -25, Math.sin(a) * r);
+      o.rotation.set((Math.random() - 0.5) * 0.08, Math.random() * 3, (Math.random() - 0.5) * 0.08);
+      o.scale.set(w, h, w);
+      o.updateMatrix();
+      this.mesh.setMatrixAt(i, o.matrix);
+    }
+  }
+  dispose() {
+    this.mesh.geometry.dispose();
+    (this.mesh.material as THREE.Material).dispose();
+    this.mesh.dispose();
   }
 }

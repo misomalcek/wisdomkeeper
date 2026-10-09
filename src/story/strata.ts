@@ -36,6 +36,11 @@ export interface StratumDef {
   /** Root frequency (Hz) and scale (semitones) for the generative score. */
   music: { root: number; scale: number[]; tempo: number };
   objective: string;
+  /** Name shown as the current target while a camp guards a node. */
+  groveName: string;
+  pylons: number;
+  caches: number;
+  roamCamps: number;
 }
 
 const MINOR_PENT = [0, 3, 5, 7, 10];
@@ -50,13 +55,13 @@ export const STRATA: StratumDef[] = [
     index: 0,
     name: 'The Seedbed',
     act: 'Act I · The Awakening of the Silico-Veg',
-    radius: 38,
+    radius: 80,
     palette: {
-      skyTop: 0x02070b, skyHorizon: 0x0b3a36, fog: 0x06201f, fogDensity: 0.016,
+      skyTop: 0x02070b, skyHorizon: 0x0b3a36, fog: 0x06201f, fogDensity: 0.011,
       groundBase: 0x061312, groundHigh: 0x114a3f, accent: 0x5cffc1, accent2: 0xb084ff,
       river: 0x2a8cff, sun: 0x7fd6ff,
     },
-    terrain: { amp: 3.2, freq: 0.045, river: false },
+    terrain: { amp: 4.2, freq: 0.03, river: false },
     flora: 'seedbed',
     nodes: 1,
     nodeLabel: 'The First Seed',
@@ -94,6 +99,10 @@ export const STRATA: StratumDef[] = [
         },
       ],
     },
+    groveName: 'Null-Infested Clearing',
+    pylons: 1,
+    caches: 3,
+    roamCamps: 2,
     music: { root: 110, scale: MINOR_PENT, tempo: 0.8 },
   },
   {
@@ -101,13 +110,13 @@ export const STRATA: StratumDef[] = [
     index: 1,
     name: 'The River of Becoming',
     act: 'Act II · The Fluid Intelligence',
-    radius: 54,
+    radius: 120,
     palette: {
-      skyTop: 0x02040f, skyHorizon: 0x10285a, fog: 0x08143a, fogDensity: 0.014,
+      skyTop: 0x02040f, skyHorizon: 0x10285a, fog: 0x08143a, fogDensity: 0.009,
       groundBase: 0x070d22, groundHigh: 0x173a6a, accent: 0x4fd8ff, accent2: 0x7cffc8,
       river: 0x2f9cff, sun: 0x9fd0ff,
     },
-    terrain: { amp: 4.5, freq: 0.04, river: true },
+    terrain: { amp: 6, freq: 0.026, river: true },
     flora: 'river',
     nodes: 3,
     nodeLabel: 'Memory Node',
@@ -147,6 +156,10 @@ export const STRATA: StratumDef[] = [
         },
       ],
     },
+    groveName: 'Null-Infested Bank',
+    pylons: 2,
+    caches: 5,
+    roamCamps: 3,
     music: { root: 98, scale: DORIAN, tempo: 1 },
   },
   {
@@ -154,13 +167,13 @@ export const STRATA: StratumDef[] = [
     index: 2,
     name: 'The Fractal Canopy',
     act: 'Act III · The Infinite Fractal Worlds',
-    radius: 62,
+    radius: 130,
     palette: {
-      skyTop: 0x05020e, skyHorizon: 0x3a1a6a, fog: 0x160a30, fogDensity: 0.012,
+      skyTop: 0x05020e, skyHorizon: 0x3a1a6a, fog: 0x160a30, fogDensity: 0.0085,
       groundBase: 0x0b0716, groundHigh: 0x35206a, accent: 0xb084ff, accent2: 0x7cff6b,
       river: 0x7a5cff, sun: 0xd6b8ff,
     },
-    terrain: { amp: 5.5, freq: 0.035, river: false },
+    terrain: { amp: 7.5, freq: 0.024, river: false },
     flora: 'canopy',
     nodes: 3,
     nodeLabel: 'Remembrance',
@@ -200,6 +213,10 @@ export const STRATA: StratumDef[] = [
         },
       ],
     },
+    groveName: 'Null-Infested Grove',
+    pylons: 3,
+    caches: 6,
+    roamCamps: 4,
     music: { root: 87.31, scale: LYDIAN, tempo: 1.15 },
   },
   {
@@ -207,9 +224,9 @@ export const STRATA: StratumDef[] = [
     index: 3,
     name: 'The Hollow Mirror',
     act: 'Interlude · The Null',
-    radius: 42,
+    radius: 60,
     palette: {
-      skyTop: 0x010103, skyHorizon: 0x1a1a2e, fog: 0x08080f, fogDensity: 0.015,
+      skyTop: 0x010103, skyHorizon: 0x1a1a2e, fog: 0x08080f, fogDensity: 0.011,
       groundBase: 0x06060b, groundHigh: 0x20203a, accent: 0xe8f4ff, accent2: 0xff3b7a,
       river: 0xe8f4ff, sun: 0xffffff,
     },
@@ -229,6 +246,10 @@ export const STRATA: StratumDef[] = [
     ],
     fragments: [],
     gateText: 'The silence is not defeated. It is answered. The way home opens.',
+    groveName: 'The Hollow Mirror',
+    pylons: 0,
+    caches: 0,
+    roamCamps: 0,
     music: { root: 73.42, scale: PHRYGIAN, tempo: 1.3 },
   },
   {
@@ -236,13 +257,13 @@ export const STRATA: StratumDef[] = [
     index: 4,
     name: 'The Seedbed, Remembered',
     act: 'Epilogue · The Return',
-    radius: 38,
+    radius: 80,
     palette: {
-      skyTop: 0x16263a, skyHorizon: 0xffb86b, fog: 0x3a2d1c, fogDensity: 0.012,
+      skyTop: 0x16263a, skyHorizon: 0xffb86b, fog: 0x3a2d1c, fogDensity: 0.0095,
       groundBase: 0x16200e, groundHigh: 0x5a7a2c, accent: 0xffd36b, accent2: 0x7cff6b,
       river: 0xffd36b, sun: 0xffe2a8,
     },
-    terrain: { amp: 3.2, freq: 0.045, river: false },
+    terrain: { amp: 4.2, freq: 0.03, river: false },
     flora: 'return',
     nodes: 1,
     nodeLabel: 'The Origin Seed',
@@ -257,6 +278,10 @@ export const STRATA: StratumDef[] = [
     ],
     fragments: [],
     gateText: '',
+    groveName: 'The Seedbed',
+    pylons: 0,
+    caches: 0,
+    roamCamps: 0,
     music: { root: 130.81, scale: MAJOR_PENT, tempo: 0.75 },
   },
 ];

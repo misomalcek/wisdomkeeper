@@ -3,17 +3,16 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { damp } from '../util/math';
 
 export class Gfx {
   readonly renderer: THREE.WebGLRenderer;
   readonly scene = new THREE.Scene();
-  readonly camera = new THREE.PerspectiveCamera(48, 1, 0.1, 600);
+  readonly camera = new THREE.PerspectiveCamera(62, 1, 0.1, 900);
   readonly composer: EffectComposer | null;
   readonly bloom: UnrealBloomPass;
   readonly hemi = new THREE.HemisphereLight(0x88ccff, 0x112211, 0.9);
   readonly sun = new THREE.DirectionalLight(0xffffff, 1.2);
-  readonly playerLight = new THREE.PointLight(0x5cffc1, 14, 28, 1.7);
+  readonly playerLight = new THREE.PointLight(0x5cffc1, 10, 16, 1.7);
   private pixelRatio: number;
   private lowQualityTimer = 0;
   private frames = 0;
@@ -127,56 +126,5 @@ export class Gfx {
   render() {
     if (this.composer) this.composer.render();
     else this.renderer.render(this.scene, this.camera);
-  }
-}
-
-export class CameraRig {
-  readonly offset = new THREE.Vector3(0, 18, 13.2);
-  readonly pos = new THREE.Vector3();
-  private look = new THREE.Vector3();
-  private shake = 0;
-  zoom = 1;
-  zoomTarget = 1;
-  zoomRate = 3;
-  fovBoost = 0;
-  fovTarget = 0;
-  private fov = 48;
-
-  constructor(private camera: THREE.PerspectiveCamera) {}
-
-  private calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  addShake(a: number) {
-    this.shake = Math.min(this.shake + a * (this.calm ? 0.25 : 1), 1.6);
-  }
-
-  snap(focus: THREE.Vector3) {
-    this.look.copy(focus);
-    this.pos.copy(focus).addScaledVector(this.offset, this.zoom);
-    this.camera.position.copy(this.pos);
-    this.camera.lookAt(this.look);
-  }
-
-  update(dt: number, focus: THREE.Vector3, lead: THREE.Vector3) {
-    const k = 7;
-    this.zoom = damp(this.zoom, this.zoomTarget, this.zoomRate, dt);
-    this.fovBoost = damp(this.fovBoost, this.fovTarget, this.zoomRate, dt);
-    this.look.x = damp(this.look.x, focus.x + lead.x, k, dt);
-    this.look.y = damp(this.look.y, focus.y + lead.y, k, dt);
-    this.look.z = damp(this.look.z, focus.z + lead.z, k, dt);
-    this.pos.copy(this.look).addScaledVector(this.offset, this.zoom);
-    this.shake = Math.max(0, this.shake - dt * 2.8);
-    const s = this.shake * this.shake;
-    this.camera.position.set(
-      this.pos.x + (Math.random() - 0.5) * s,
-      this.pos.y + (Math.random() - 0.5) * s,
-      this.pos.z + (Math.random() - 0.5) * s,
-    );
-    this.fov = damp(this.fov, 48 + this.fovBoost, 8, dt);
-    if (Math.abs(this.camera.fov - this.fov) > 0.01) {
-      this.camera.fov = this.fov;
-      this.camera.updateProjectionMatrix();
-    }
-    this.camera.lookAt(this.look);
   }
 }

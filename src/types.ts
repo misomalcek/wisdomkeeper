@@ -1,6 +1,20 @@
 export type Affinity = 'root' | 'echo' | 'flow';
 export type StratumId = 'seedbed' | 'river' | 'canopy' | 'mirror' | 'return';
 export type EnemyKind = 'mite' | 'spitter' | 'brute' | 'boss';
+export type Slot = 'helm' | 'armor' | 'boots' | 'blade' | 'modulator' | 'core';
+export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type StatKey = 'life' | 'damage' | 'resRegen' | 'resMax' | 'dr' | 'speed' | 'dashCd' | 'power' | 'voidDmg';
+export type Skin = 'resonant' | 'verdant' | 'void';
+export type Remembrance = 'purify' | 'embrace';
+
+export interface Item {
+  id: string;
+  slot: Slot;
+  name: string;
+  rarity: Rarity;
+  level: number;
+  stats: Partial<Record<StatKey, number>>;
+}
 
 export interface Choice {
   id: string;
@@ -25,6 +39,8 @@ export interface HistoryEntry {
   echoes: number;
   deaths: number;
   time: number;
+  purified?: number;
+  embraced?: number;
   /** What the Mycelial Mind noticed about the player in this stratum. */
   mindNote?: string;
 }
@@ -39,6 +55,7 @@ export interface EchoRecord {
 }
 
 export interface PlayStats {
+  /** ranged shots + melee swings */
   shots: number;
   hits: number;
   damageTaken: number;
@@ -49,7 +66,7 @@ export interface PlayStats {
 }
 
 export interface RunState {
-  version: 1;
+  version: 2;
   cycle: number;
   seed: number;
   stratumIndex: number;
@@ -63,6 +80,16 @@ export interface RunState {
   difficulty: number;
   /** Latent world code produced by the Mycelial Mind from player style. */
   latent: number[];
+  level: number;
+  xp: number;
+  skillPoints: number;
+  skills: Record<string, number>;
+  inventory: Item[];
+  equipped: Partial<Record<Slot, Item>>;
+  skin: Skin;
+  nullPoints: number;
+  purityPoints: number;
+  remembrances: Remembrance[];
 }
 
 export interface LibraryEntry {

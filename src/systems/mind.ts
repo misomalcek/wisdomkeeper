@@ -17,10 +17,10 @@ export interface Features {
 export function digest(s: PlayStats, maxHp: number): Features {
   const t = Math.max(s.time, 1);
   return {
-    aggression: clamp(s.shots / t / 4, 0, 1),
+    aggression: clamp(s.shots / t / 3.5, 0, 1),
     accuracy: s.shots > 0 ? clamp(s.hits / s.shots, 0, 1) : 0.4,
     vulnerability: clamp(s.damageTaken / (maxHp * 2), 0, 1),
-    roaming: clamp(s.distance / t / 9, 0, 1),
+    roaming: clamp(s.distance / t / 14, 0, 1),
     evasion: clamp(s.dashes / t / 0.25, 0, 1),
   };
 }

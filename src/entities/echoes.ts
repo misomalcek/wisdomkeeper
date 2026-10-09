@@ -35,7 +35,7 @@ export class EchoGrove {
 
   constructor(private terrain: Terrain) {
     this.trunk = new THREE.InstancedMesh(
-      new THREE.ConeGeometry(0.28, 1, 6).translate(0, 0.5, 0),
+      new THREE.ConeGeometry(0.3, 1, 7).translate(0, 0.5, 0),
       occlusionFade(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6, metalness: 0.1 })),
       MAX,
     );
@@ -91,7 +91,7 @@ export class EchoGrove {
       let g = easeOutBack(clamp(age / GROW, 0, 1));
       if (e.ttl !== undefined && e.ttl < 0) g *= clamp(1 + e.ttl / 0.6, 0, 1);
       g = Math.max(g, 0.001);
-      const h = e.sentinel ? 1.6 : 2.6;
+      const h = e.sentinel ? 2.4 : 4.2;
       _o.rotation.set(0, i * 1.7, 0);
       _o.position.set(e.x, e.y, e.z);
       _o.scale.set(g * e.scale, g * e.scale * h, g * e.scale);

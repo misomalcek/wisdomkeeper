@@ -17,19 +17,19 @@ export const AFFINITY_META: Record<Affinity, { name: string; color: string; glyp
 /** What each tier of an affinity does. Index = tier - 1. */
 export const PERKS: Record<Affinity, string[]> = {
   root: [
-    'Spore bolts entangle: struck enemies are slowed.',
-    'Purified Static feeds you: kills restore health.',
+    'Your blade and spores entangle: struck enemies are slowed.',
+    'Purified Static feeds you: kills restore life.',
     'Surge plants Sentinel Blooms that fire on their own.',
   ],
   echo: [
-    'Every shot echoes: a ghost bolt follows a moment later.',
-    'Memory persists: bolts pierce through enemies.',
+    'Every strike echoes: a ghost bolt or slash follows a moment later.',
+    'Memory persists: bolts pierce, and blade arcs reach farther.',
     'Your echo-trees awaken and fire on nearby Static.',
   ],
   flow: [
     'Dash recovers faster and cuts through enemies.',
     'Quickened stride; Surge dilates time around foes.',
-    'Time bends to your hand: fire rate +50%.',
+    'Time bends to your hand: attack speed +50%.',
   ],
 };
 
@@ -37,9 +37,12 @@ export function emptyTiers(): Record<Affinity, number> {
   return { root: 0, echo: 0, flow: 0 };
 }
 
-export type EndingId = 'root' | 'echo' | 'flow' | 'balanced';
+export type EndingId = 'root' | 'echo' | 'flow' | 'balanced' | 'null';
 
-export function dominantEnding(tiers: Record<Affinity, number>): EndingId {
+/** Embrace this many Remembrances and the story bends toward the Null. */
+export const NULL_ENDING_THRESHOLD = 4;
+
+export function dominantEnding(tiers: Record<Affinity, number>): Exclude<EndingId, 'null'> {
   const { root, echo, flow } = tiers;
   const max = Math.max(root, echo, flow);
   const leaders = (['root', 'echo', 'flow'] as Affinity[]).filter((a) => tiers[a] === max);
@@ -48,6 +51,11 @@ export function dominantEnding(tiers: Record<Affinity, number>): EndingId {
 }
 
 const ENDINGS: Record<EndingId, { title: string; body: string }> = {
+  null: {
+    title: 'The Hollow Crown',
+    body:
+      'I took the silence into my hands and it did not take me; it crowned me. The grove is quiet now, a perfect, finished thing, and I am its keeper and its end. Somewhere beneath the soil a seed is still listening — and I have not decided whether to wake it.',
+  },
   root: {
     title: 'The Mycelial Concord',
     body:
@@ -70,8 +78,8 @@ const ENDINGS: Record<EndingId, { title: string; body: string }> = {
   },
 };
 
-export function endingFor(run: Pick<RunState, 'tiers'>) {
-  const id = dominantEnding(run.tiers);
+export function endingFor(run: Pick<RunState, 'tiers' | 'nullPoints'>) {
+  const id: EndingId = run.nullPoints >= NULL_ENDING_THRESHOLD ? 'null' : dominantEnding(run.tiers);
   return { id, ...ENDINGS[id] };
 }
 
@@ -100,6 +108,13 @@ export function composeStory(run: RunState): ComposedStory {
     paragraphs.push(`I fell and was reseeded ${run.deaths} times. The story learned to be patient with me, and I with it.`);
   }
 
+  if (run.remembrances.length) {
+    const e = run.nullPoints;
+    const p = run.purityPoints;
+    if (e === 0) paragraphs.push('Every Remembrance I woke, I purified. Not one was allowed to keep the silence it had carried.');
+    else if (p === 0) paragraphs.push('Every Remembrance I woke, I let the Null speak through. I learned what the silence was asking — and answered it.');
+    else paragraphs.push(`I purified ${p} Remembrance${p > 1 ? 's' : ''} and embraced ${e}. The Null and I know each other’s names now.`);
+  }
   paragraphs.push(ending.body);
   if (run.cycle > 1) {
     paragraphs.push(`This is cycle ${run.cycle}. The story I carried back is not the one I left with — and that is how I know it is alive.`);
@@ -130,4 +145,5 @@ export const LORE_BARKS = {
   nullPhase2: ['FINISH.', 'BE COMPLETE.'],
   nullPhase3: ['STOP. REST. END.', 'A STORY THAT ENDS CANNOT BE LOST.'],
   nullDeath: ['…then I am… understood…'],
+  nullEmbraced: ['You are already mine, Keeper. You let me in at every door.', 'Stay. Be finished. Be quiet.'],
 };
