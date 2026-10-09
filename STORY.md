@@ -22,9 +22,9 @@ The origin‑story documents offer three directions at every step. Each is tied 
 
 | Affinity | Spirit | I | II | III |
 |----------|--------|---|----|-----|
-| **Root ❦** | mycelial symbiosis | slowing spores | kills heal | Surge plants Sentinel Blooms |
-| **Echo ◈** | living memory | ghost bolts | piercing | echo‑trees awaken and shoot |
-| **Flow ≋** | time & current | fast, damaging dash | speed + time‑dilating Surge | +50 % fire rate |
+| **Root ❦** | mycelial symbiosis | entangling blade & spores | kills heal | Surge plants Sentinel Blooms |
+| **Echo ◈** | living memory | ghost strikes | piercing bolts, wider arcs | echo‑trees awaken and shoot |
+| **Flow ≋** | time & current | fast, damaging dash | speed + time‑dilating Surge | +50 % attack speed |
 
 ## The paths (choices)
 
@@ -42,14 +42,26 @@ The origin‑story documents offer three directions at every step. Each is tied 
 
 Three choices means **tier III needs total commitment** to one affinity, while one‑of‑each yields the balanced ending.
 
+## Remembrances: Embrace vs Purify
+
+Every Memory Node (one in the Seedbed, three each in the River and the Canopy — seven in all) ends with a binary choice that
+mirrors the concept art: **[A] Embrace the Null’s influence** or **[B] Purify the Remembrance**.
+
+| | Embrace the Null | Purify |
+|---|---|---|
+| Power | +10% damage, +1 skill point, a legendary-grade cache | full heal, +10 max life, a verdant echo-grove |
+| Cost | −6 max life, the Static grows bolder | — |
+| Long-term | 3 embraces unlock the *Void Resonant* armor; **4+ bend the ending** | 3 purifications unlock *Verdant Mycelium* |
+
 ## Endings
 
-Dominant affinity decides the closing paragraph; a tie (or one‑of‑each) gives the true name of the game.
+Dominant affinity decides the closing paragraph; a tie (or one‑of‑each) gives the true name of the game — unless the Null has been embraced too often.
 
 * **The Mycelial Concord** — Root dominant
 * **The Library of Roots** — Echo dominant
 * **The Spiral Clock** — Flow dominant
 * **The Wisdomkeeper** — balanced
+* **The Hollow Crown** — 4 or more Remembrances embraced (overrides the affinity ending)
 
 The final text = opening quote + the epilogue line of each path you chose + a line about how often you were reseeded +
 the ending paragraph + the closing quote. Finished stories are kept in the **Library of Cycles**, and cycle *n+1* opens
@@ -58,6 +70,6 @@ with a nod to cycle *n*.
 ## Extending the story
 
 * **New path or act** – add a `Choice` in a stratum’s `choice.choices` (give it a unique `id`; the tests check that).
-* **New stratum** – append to `STRATA` (insert before `return`), add a flora kind in `world/flora.ts` and an entry in the
-  per‑stratum camera zoom list in `Game.enterStratum`.
+* **New stratum** – append to `STRATA` (insert before `return`), set its `radius`, `pylons`, `caches`, `roamCamps` and
+  `groveName`, and add a flora kind in `world/flora.ts`. Camp composition lives in `Game.campComposition`.
 * **New fragments / barks** – `fragments` are shown when each Memory Node completes; `LORE_BARKS` are the Null Warden’s lines.

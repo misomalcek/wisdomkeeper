@@ -74,7 +74,7 @@ export class ThirdPersonCam {
         break;
       }
     }
-    if (t < 1) _p.lerpVectors(this.pivot, _p, Math.max(t, 0.15));
+    if (t < 1) _p.lerpVectors(this.pivot, _p, Math.max(t, 0.5));
     _p.y = Math.max(_p.y, this.terrainH(_p.x, _p.z) + 0.7);
     this.pos.copy(_p);
     const s = this.shake * this.shake;

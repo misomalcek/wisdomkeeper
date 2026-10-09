@@ -78,6 +78,7 @@ export class Terrain {
       uLights: { value: this.lightArr },
       uCorrupt: { value: this.corruptArr },
       uNull: { value: new THREE.Color(0xff3b7a) },
+      uStream: { value: o.grid > 0.8 ? 0.35 : 1 },
     };
 
     const mat = new THREE.ShaderMaterial({
@@ -94,7 +95,7 @@ export class Terrain {
       fragmentShader: /* glsl */ `
         #define NL ${MAX_LIGHTS}
         #define NC ${MAX_CORRUPT}
-        uniform vec4 uCorrupt[NC]; uniform vec3 uNull;
+        uniform vec4 uCorrupt[NC]; uniform vec3 uNull; uniform float uStream;
         uniform float uTime; uniform vec3 uBase, uHigh, uAccent, uAccent2, uRiver, uFogColor;
         uniform float uFogDensity, uGrid, uRadius; uniform vec4 uLights[NL];
         varying vec3 vWorld; varying vec3 vN; varying float vRiver; varying float vDist;
@@ -127,6 +128,16 @@ export class Terrain {
           float lines = (g1 * 0.35 + g2 * 0.9) * uGrid * (0.3 + glow * 1.5) * fade;
           col += mix(uAccent, uAccent2, 0.5 + 0.5 * sin(vWorld.x * 0.05 + uTime * 0.2)) * lines;
           col += uAccent * glow * 0.05 * (0.4 + diff);
+
+          // bioluminescent data streams threading the ground, pulsing along their length
+          {
+            float w1 = vWorld.x * 0.11 + sin(vWorld.z * 0.07) * 3.0 + sin(vWorld.z * 0.19 + 1.3) * 1.3;
+            float w2 = vWorld.z * 0.09 + sin(vWorld.x * 0.08 + 2.0) * 2.6 + sin(vWorld.x * 0.21) * 1.1;
+            float l1 = smoothstep(0.045, 0.0, abs(fract(w1) - 0.5)) * (0.5 + 0.5 * sin(vWorld.z * 0.9 - uTime * 2.2 + w1 * 6.0));
+            float l2 = smoothstep(0.04, 0.0, abs(fract(w2) - 0.5)) * (0.5 + 0.5 * sin(vWorld.x * 0.8 + uTime * 1.9 + w2 * 5.0));
+            float nearF = 1.0 - smoothstep(35.0, 95.0, vDist);
+            col += mix(uAccent, uAccent2, 0.5 + 0.5 * sin(w1)) * (l1 + l2 * 0.7) * 0.5 * uStream * nearF;
+          }
 
           // Null corruption: stained ground with creeping veins around enemy camps
           float cor = 0.0;

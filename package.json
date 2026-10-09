@@ -2,7 +2,7 @@
   "name": "wisdomkeeper",
   "private": true,
   "version": "1.0.0",
-  "description": "Wisdomkeeper — the Infinite Story Engine. A cyber-phyto-mycelial action adventure in Three.js.",
+  "description": "Wisdomkeeper \u2014 the Infinite Story Engine. A third-person cyber-phyto-mycelial open-world action RPG in Three.js.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,7 @@
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "test": "vitest run",
     "test:systems": "npm run build && node scripts/systems-test.mjs",
-    "sim": "npm run build && node scripts/sim2.mjs 0,1,2 0.4"
+    "sim": "npm run build && node scripts/sim-full.mjs 0.7 45"
   },
   "dependencies": {
     "three": "^0.186.1"

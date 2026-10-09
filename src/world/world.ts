@@ -311,7 +311,7 @@ export class World {
     let lum = 0;
     for (let i = 0; i < img.data.length; i += 4) lum += (img.data[i] + img.data[i + 1] + img.data[i + 2]) / 765;
     lum /= N * N;
-    const gain = THREE.MathUtils.clamp(0.34 / Math.max(lum, 0.02), 1, 4);
+    const gain = THREE.MathUtils.clamp(0.3 / Math.max(lum, 0.02), 0.8, 2.6);
     for (let i = 0; i < img.data.length; i += 4) {
       img.data[i] = Math.min(255, img.data[i] * gain);
       img.data[i + 1] = Math.min(255, img.data[i + 1] * gain);

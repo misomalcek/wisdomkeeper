@@ -281,3 +281,20 @@ table.keys td { padding: 7px 4px; border-bottom: 1px solid rgba(124,255,214,0.12
 
 body.ov #hud { opacity: 0.18; transition: opacity 0.2s; }
 #hud { transition: opacity 0.2s; }
+
+/* ---------- small-screen safety ---------- */
+.overlay { align-items: flex-start; }
+.overlay > .panel, .overlay > .bin, .overlay > .title-inner { margin: auto; }
+@media (pointer: coarse) {
+  #act-name, #target { display: none !important; }
+  #objective-panel { width: 200px; padding: 4px 8px; } #objective { font-size: 12px; margin: 0; }
+  #objective-panel .prog { width: 180px; height: 9px; margin-top: 4px; }
+  #t-r { bottom: 150px; right: 96px; } #t-fly { bottom: 142px; right: 186px; }
+}
+@media (max-height: 520px) {
+  .side { min-height: 0; padding: 12px 22px; gap: 4px; } .side b { font-size: 15px; } .side small { font-size: 12px; line-height: 1.35; }
+  .bin-top { margin: 6px 0 8px; } .vs { width: 48px; height: 48px; font-size: 15px; }
+  .path svg { height: 84px; } .bin .eyebrow { font-size: 10px; }
+  .inv-grid { min-height: 0; } .pack { max-height: 150px; } .detail { min-height: 70px; }
+  .skilltree { gap: 10px; } .sk { min-height: 48px; padding: 4px 8px; } .sk small { font-size: 10px; }
+}
